@@ -67,11 +67,18 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 		//TODO: check against PEX for groupings?
 		for(String iter : config.getStringList("enabled")){
 			int v = config.getInt("status."+iter);
+			
+			//build origin data
+			if(config.getConfigurationSection("data.status."+iter) == null){
+				config.set("data.status."+iter+".players", null);
+				config.set("data.status."+iter+".locations", null);
+			}
+			
 			Map<String,Long> m = new HashMap<String,Long>();			
 			for(String key : config.getConfigurationSection("data.status."+iter+".players").getKeys(false)){
 				m.put(key,config.getLong("data.status."+iter+".players."+key));
 			}
-			List<String> l_temp = config.getStringList("data.status."+iter+".players");
+			List<String> l_temp = config.getStringList("data.status."+iter+".locations");
 			List<Location> l = new LinkedList<Location>();
 			while(!l_temp.isEmpty()){
 				l.add(toLocation(l_temp.remove(0)));
