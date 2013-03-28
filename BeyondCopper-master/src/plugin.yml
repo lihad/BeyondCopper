@@ -1,0 +1,7 @@
+name: BeyondStatus
+main: Lihad.BeyondCopper.BeyondStatus
+version: 2.0
+commands:
+  bstat:
+    description: Invalid Command
+    usage: Invalid Command
