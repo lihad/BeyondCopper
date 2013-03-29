@@ -1,5 +1,8 @@
  package Lihad.BeyondCopper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -26,7 +30,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-//TODO: Add onPlayerJoin unregistered Status check and add players into the expiry table for that status.
 public class BeyondStatus extends JavaPlugin implements Listener {
 	public static FileConfiguration config;
 	protected static String PLUGIN_NAME = "BeyondStatus";
@@ -36,8 +39,10 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 	private static Map<String,Status> selection_map = new HashMap<String,Status>();
 	private static Map<String,Status> expiry_dump_cache = new HashMap<String,Status>();
 	public static List<Status> status_list = new LinkedList<Status>();
-
     public static Economy econ;
+    
+	SimpleDateFormat parserSDF=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ZZZZZ");
+
 
     public class Status{
     	String name;
@@ -111,6 +116,12 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 		if((event.getPlugin().getDescription().getName().equals("Vault"))) setupEconomy();
 	}
 	
+	//TODO: Add Status check and add players into the expiry table for that status.
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event){
+		
+	}
+	
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event){
 		for(Status status : status_list){
@@ -158,8 +169,16 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 					player.sendMessage(ChatColor.GRAY+"./bstat remove");
 				}
 				player.sendMessage(ChatColor.AQUA+"-------Status");
-				//TODO: add player expire checks.
-				player.sendMessage("This function currently does not exist.");
+				for(Status status : status_list){
+					if(status.expiration.containsKey(player.getName())){
+						Calendar c = Calendar.getInstance();
+						c.setTimeInMillis(status.expiration.get(player.getName())+2592000000L);
+						
+						player.sendMessage("Your elite status expires on "+parserSDF.format(c.getTime()));
+						return true;
+					}
+				}
+				player.sendMessage("No status found....");
 			}else if(args.length == 1 && player.isOp()){
 				if(args[0].equalsIgnoreCase("set"))player.sendMessage(ChatColor.GRAY+"./bstat set <status|null>");
 				else if(args[0].equalsIgnoreCase("remove")){
