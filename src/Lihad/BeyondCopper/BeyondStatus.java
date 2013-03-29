@@ -18,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -27,11 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-
-//TODO: REWORK EVERYTHING IN THIS POS!!!!
-//Make a class for Status.  Save it as a Map or something.  <- Make that shit dynamic
-//Grab players with a status and not on any list; add them to that shit
-//KILL DAT LOG!!!
+//TODO: Add onPlayerJoin unregistered Status check and add players into the expiry table for that status.
 public class BeyondStatus extends JavaPlugin implements Listener {
 	public static FileConfiguration config;
 	protected static String PLUGIN_NAME = "BeyondStatus";
@@ -40,8 +35,6 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 	private static Logger log = Logger.getLogger("Minecraft");
 	private static Map<String,Status> selection_map = new HashMap<String,Status>();
 	private static Map<String,Status> expiry_dump_cache = new HashMap<String,Status>();
-
-	
 	public static List<Status> status_list = new LinkedList<Status>();
 
     public static Economy econ;
@@ -105,7 +98,9 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 		this.getServer().getScheduler().scheduleAsyncDelayedTask(this, new Runnable(){
 			@Override
 			public void run() {
+				info("Running expiry cache dump.");
 				while(!expiry_dump_cache.isEmpty()) downgrade(expiry_dump_cache.get(expiry_dump_cache.keySet().toArray()[0]), expiry_dump_cache.keySet().toArray()[0].toString());
+				info("Ending expiry cache dump.");
 			}
 		},2400);
 	}
@@ -159,8 +154,8 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 			if(args.length == 0){
 				if(player.isOp()){
 					player.sendMessage(ChatColor.GOLD+"-------Admin");
-					if(args[0].equalsIgnoreCase("set"))player.sendMessage(ChatColor.GRAY+"./bstat set <status|null>");
-					if(args[0].equalsIgnoreCase("remove"))player.sendMessage(ChatColor.GRAY+"./bstat remove");
+					player.sendMessage(ChatColor.GRAY+"./bstat set <status|null>");
+					player.sendMessage(ChatColor.GRAY+"./bstat remove");
 				}
 				player.sendMessage(ChatColor.AQUA+"-------Status");
 				//TODO: add player expire checks.
@@ -182,6 +177,8 @@ public class BeyondStatus extends JavaPlugin implements Listener {
 						if(s.name.equalsIgnoreCase(args[1])){
 							status = s;
 							str = status.name;
+						}else{
+							player.sendMessage(ChatColor.RED+"Invalid Status.  Set as NULL (delete)");
 						}
 					}
 					selection_map.put(player.getName(), status);
